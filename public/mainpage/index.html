@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradeWorks - Instant Steam Item Trading</title>
+    <link rel="stylesheet" href="/mainpage/style.css">
+</head>
+<body>
+    <!-- Header/Navbar -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <img src="https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_jdk4veqYaF7IfysCnWRxuF4j-B-Xxa_nBovp3Pdwtj9cC_GaAd0DZdwQu9fuhS4kNy0NePntVTbjYpCyyT_3CgY5i9j_a9cBkcCWUKV/360fx360f" alt="TradeWorks Logo" id="logo-img">
+                    <span class="logo-text">TradeWorks</span>
+                </div>
+                <div class="nav-links">
+                    <a href="#">Home</a>
+                    <a href="/Welcome">Welcome</a>
+                </div>
+                
+                <button class="auth-btn" id="auth-btn">Sign in with Steam</button>
+            </nav>
+        </div>
+    </header>
+    
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1 class="hero-title"><span>Trade</span> Steam Items Without <span>7-Day Hold</span></h1>
+                    <p class="hero-subtitle">
+                        Join thousands of gamers using TradeWorks for instant item trading, affordable rentals, 
+                        and secure marketplace transactions. Get the skins you want immediately with no waiting periods.
+                    </p>
+                    <div class="cta-buttons">
+                        <button class="cta-btn primary-btn">Start Trading Now</button>
+                        <button class="cta-btn secondary-btn">How It Works</button>
+                    </div>
+                </div>
+                <div class="hero-images">
+                    <div class="skin-card skin-card-1" style="--initial-rotation: -5deg;">
+                        <img src="https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1Q7uCvZaZkNM-SA1iUzv5mvOR7cDm7lA4i4gKJk4jxNWXFb1cpDJR2FOFbsBTql9bjYbzq7gPZiN1MxH7_2ytNuCdpte1UB_Ui5OSJ2GbkVqni/360fx360f" alt="CS:GO Skin" class="skin-card-img">
+                        <div class="skin-card-body">
+                            <h4 class="skin-card-title">★ Karambit | Doppler</h4>
+                            <p class="skin-card-price">$1,250.00</p>
+                        </div>
+                    </div>
+                    <div class="skin-card skin-card-2" style="--initial-rotation: 3deg;">
+                        <img src="https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_jdk4veqYaF7IfysCnWRxuF4j-B-Xxa_nBovp3Pdwtj9cC_GaAd0DZdwQu9fuhS4kNy0NePntVTbjYpCyyT_3CgY5i9j_a9cBkcCWUKV/360fx360f" alt="CS:GO Skin" class="skin-card-img">
+                        <div class="skin-card-body">
+                            <h4 class="skin-card-title">AWP | Dragon Lore</h4>
+                            <p class="skin-card-price">$2,800.00</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="container">
+            <div class="stats-container">
+                <div class="stat-item">
+                    <div class="stat-number gamer-font" id="user-count">125,847</div>
+                    <div class="stat-label">Active Traders</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number gamer-font" id="trade-count">892,154</div>
+                    <div class="stat-label">Daily Trades</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number gamer-font" id="item-count">5,842,901</div>
+                    <div class="stat-label">Available Items</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number gamer-font" id="rental-count">42,687</div>
+                    <div class="stat-label">Active Rentals</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Recent Activity Section -->
+    <section class="activity">
+        <div class="container">
+            <h2 class="section-title">Live <span>Trade Activity</span></h2>
+            <div class="activity-container">
+                <div class="activity-feed" id="activity-feed">
+
+ 
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">Why <span>TradeWorks?</span></h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">Instant Trading</h3>
+                    <p class="feature-text">
+                        No more 7-day trade holds. Get your items immediately with our secure trading system.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💎</div>
+                    <h3 class="feature-title">Affordable Rentals</h3>
+                    <p class="feature-text">
+                        Rent expensive skins for a fraction of their price. Try before you buy!
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3 class="feature-title">Secure Marketplace</h3>
+                    <p class="feature-text">
+                        Buy and sell with confidence using our escrow system that protects both parties.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3 class="feature-title">Real-time Analytics</h3>
+                    <p class="feature-text">
+                        Track skin prices and market trends to make informed trading decisions.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3 class="feature-title">Secure Storage</h3>
+                    <p class="feature-text">
+                        Your items are protected in our secure inventory system until you need them.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3 class="feature-title">Vibrant Community</h3>
+                    <p class="feature-text">
+                        Join thousands of active traders and collectors in our growing community.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-about">
+                    <div class="footer-logo">
+                        <img src="https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1Q7uCvZaZkNM-SA1iUzv5mvOR7cDm7lA4i4gKJk4jxNWXFb1cpDJR2FOFbsBTql9bjYbzq7gPZiN1MxH7_2ytNuCdpte1UB_Ui5OSJ2GbkVqni/360fx360f" alt="CS:GO Skin" class="skin-card-img">
+                        <span class="footer-logo-text">TradeWorks</span>
+                    </div>
+                    <p class="footer-text">
+                        The premier platform for Steam item trading without trade holds, skin rentals, 
+                        and secure marketplace transactions.
+                    </p>
+                    <div class="social-links">
+                        <a href="#" class="social-icon">📱</a>
+                        <a href="#" class="social-icon">💬</a>
+                        <a href="#" class="social-icon">📹</a>
+                        <a href="#" class="social-icon">🕊️</a>
+                    </div>
+                </div>
+                
+                <div class="footer-links">
+                    <h3>Services</h3>
+                    <ul>
+                        <li><a href="#">Instant Trading</a></li>
+                        <li><a href="#">Skin Rental</a></li>
+                        <li><a href="#">Marketplace</a></li>
+                        <li><a href="#">Price Analytics</a></li>
+                        <li><a href="#">Trade Calculator</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h3>Company</h3>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Press</a></li>
+                        <li><a href="#">Partners</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h3>Support</h3>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Safety Tips</a></li>
+                        <li><a href="#">Community</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Status</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                &copy; 2023 TradeWorks. Not affiliated with Valve or Steam. All rights reserved.
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Auth Modal -->
+    <!-- <div class="modal" id="auth-modal">
+        <div class="modal-content">
+            <button class="close-modal" id="close-modal">&times;</button>
+            <div class="iframe-container">
+                <iframe id="steam-iframe" src="about:blank" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div> -->
+    
+    <script src="/mainpage/script.js"></script>
+</body>
+</html>

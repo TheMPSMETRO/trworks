@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - TradeWorks</title>
+    <link rel="stylesheet" href="/mainpage/style.css">
+    <link rel="stylesheet" href="/views/userspage/styles.css">
+
+
+
+    <!-- Add this in your head section for Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+
+    <script>
+        const inv = JSON.parse(<%- JSON.stringify(inventory) %>)
+
+        const userInfo = {
+            name: "<%- name %>",
+            userID: "<%- userID %>",
+            tradelink:"<%- tradelink %>"
+        }
+
+        localStorage.setItem('inv',JSON.stringify(inv))
+        localStorage.setItem('userInfo',JSON.stringify(userInfo))
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <img src="https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_jdk4veqYaF7IfysCnWRxuF4j-B-Xxa_nBovp3Pdwtj9cC_GaAd0DZdwQu9fuhS4kNy0NePntVTbjYpCyyT_3CgY5i9j_a9cBkcCWUKV/360fx360f" alt="TradeWorks Logo" id="logo-img">
+                    <span class="logo-text">TradeWorks</span>
+                </div>
+                <div class="nav-links">
+                    <a href="#">Home</a>
+                    <a href="/UserPersonal/trades">Trade</a>
+                    <a href="#">Rent</a>
+                    <a href="#">Marketplace</a>
+                    <a href="#">About</a>
+                </div>
+                <div class="balancedrop">
+                    <div class="balance">
+                        <p class="balanceitem">$<strong class="balancevalue">0.00</strong></p>
+                        <p>TradeWorks balance</p>
+                    </div>
+                    <!-- User dropdown menu -->
+                    <div class="user-dropdown">
+                        <div class="user-profile" id="user-dropdown-trigger">
+                            <img src="<%- ProfilePicture %>" alt="User Avatar" class="user-avatar">
+                            <span class="user-nickname"><%- name %></span>
+                            <span class="dropdown-arrow">▼</span>
+                        </div>
+                        <div class="dropdown-content" id="user-dropdown">
+                            <a href="/profile" class="dropdown-item">
+                                <span class="dropdown-icon"><i class="bi bi-person-fill"></i></span>
+                                <span>Profile</span>
+                            </a>
+                            <a href="/settings" class="dropdown-item">
+                                <span class="dropdown-icon"><i class="bi bi-gear"></i></span>
+                                <span>Settings</span>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a href="/logout" class="dropdown-item logout">
+                                <span class="dropdown-icon"><i class="bi bi-box-arrow-right"></i></span>
+                                <span>Log-Out</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+    <!-- Profile Section -->
+    <div class="container profile-container">
+        <div class="profile-header">
+            <img src="<%- ProfilePicture %>" alt="Profile Picture" class="profile-avatar">
+            <div class="profile-info">
+                <h1 class="profile-name"><%- name %></h1>
+                <!-- <div class="profile-steamid">Steam ID: 76561199079131685</div> -->
+                <div class="profile-stats">
+                    <div class="stat-box">
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">Items</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">$0</div>
+                        <div class="stat-label">Inventory Value</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">Trades</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="contentwrap">
+             <!-- Deposit Section -->
+            <div class="deposit-section" id="deposit-section">
+
+                <h2 class="section-title">Selected <span>Items</span></h2>
+                
+                <div class="deposit-container">
+
+
+                    <div class="deposit-actions">
+                        <button class="btn-clear" id="clear-selection">
+                            <i class="bi bi-x-circle"></i> Clear Selection
+                        </button>
+                        <button class="btn-trade" id="send-trade">
+                            <i class="bi bi-arrow-repeat"></i> Start Trading 
+                        </button>
+                    </div>
+
+
+
+                    <div class="deposit-grid" id="deposit-grid">
+
+                    </div>
+                    
+                   
+                </div>
+
+            </div>
+            
+            <!-- Inventory Section -->
+            <div class="inventory-section">
+                <h2 class="section-title">My <span>Inventory</span></h2>
+                
+                <div class="game-tabs">
+                    <div class="game-tab active" data-game="703">
+                        <img src="https://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/730/8dbc71957312bbd3baea65848b545be9eae2a355.jpg" alt="Counter-Strike 2">
+                        Counter-Strike 2
+                    </div>
+                    <div class="game-tab" data-game="dota2">
+                        <img src="https://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/570/0bbb630d63262dd66d2fdd0f7d37e8661a410075.jpg" alt="Dota 2">
+                        Dota 2
+                    </div>
+                    <div class="game-tab" data-game="rust">
+                        <img src="https://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/252490/820be4782639f9c4b64fa3ca7e6c26a95ae4fd1c.jpg" alt="Rust">
+                        Rust
+                    </div>
+                    <div class="game-tab" data-game="tf2">
+                        <img src="https://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" alt="Team Fortress 2">
+                        Team Fortress 2
+                    </div>
+                </div>
+
+
+                
+                <div class="inventory-grid" id="inventory-grid">
+
+                </div>
+            </div>
+        </div>
+    
+    </div>
+
+
+    <div class="activity">
+
+    </div>
+    
+    
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-about">
+                    <div class="footer-logo">
+                        <img src="https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1Q7uCvZaZkNM-SA1iUzv5mvOR7cDm7lA4i4gKJk4jxNWXFb1cpDJR2FOFbsBTql9bjYbzq7gPZiN1MxH7_2ytNuCdpte1UB_Ui5OSJ2GbkVqni/360fx360f" alt="CS:GO Skin" class="skin-card-img">
+                        <span class="footer-logo-text">TradeWorks</span>
+                    </div>
+                    <p class="footer-text">
+                        The premier platform for Steam item trading without trade holds, skin rentals, 
+                        and secure marketplace transactions.
+                    </p>
+                    <div class="social-links">
+                        <a href="#" class="social-icon">📱</a>
+                        <a href="#" class="social-icon">💬</a>
+                        <a href="#" class="social-icon">📹</a>
+                        <a href="#" class="social-icon">🕊️</a>
+                    </div>
+                </div>
+                
+                <div class="footer-links">
+                    <h3>Services</h3>
+                    <ul>
+                        <li><a href="#">Instant Trading</a></li>
+                        <li><a href="#">Skin Rental</a></li>
+                        <li><a href="#">Marketplace</a></li>
+                        <li><a href="#">Price Analytics</a></li>
+                        <li><a href="#">Trade Calculator</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h3>Company</h3>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Press</a></li>
+                        <li><a href="#">Partners</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h3>Support</h3>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Safety Tips</a></li>
+                        <li><a href="#">Community</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Status</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                &copy; 2023 TradeWorks. Not affiliated with Valve or Steam. All rights reserved.
+            </div>
+        </div>
+    </footer>
+    
+    <script src="/views/userspage/usscript.js"></script>
+</body>
+</html>
