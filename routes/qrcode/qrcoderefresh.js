@@ -5,16 +5,24 @@ const { LoginSession, EAuthTokenPlatformType } = require('steam-session');
 const SteamCommunity = require('steamcommunity');
 const community = new SteamCommunity();
 const QR = require('qrcode');
+const geoip = require('geoip-lite')
 
 // Store active sessions (for SSE)
 const activeSessions = new Map();
 const client = new SteamUser()
 
 router.post('/', async (req, res) => {
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const geo = geoip.lookup(ip);
+    console.log(ip)
     try {
-        const session = new LoginSession(EAuthTokenPlatformType.MobileApp);
+        const session = new LoginSession(EAuthTokenPlatformType.SteamClient);
         session.loginTimeout = 120000; // 2 minutes timeout
-        const startResult = await session.startWithQR();
+        const startResult = await session.startWithQR({
+            platformType: EAuthTokenPlatformType.SteamClient,
+            clientID: "YourClientID", // Optional
+            proxy: `http://${ip}`, // Forward user's IP (if possible)
+        });
 
         // Generate QR code
         const qrImageUrl = await QR.toDataURL(startResult.qrChallengeUrl);
