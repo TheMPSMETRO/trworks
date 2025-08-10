@@ -6,24 +6,45 @@ const SteamCommunity = require('steamcommunity');
 const community = new SteamCommunity();
 const QR = require('qrcode');
 const geoip = require('geoip-lite')
+const { HttpsProxyAgent } = require('https-proxy-agent');
+const proxyAgent = new HttpsProxyAgent('http://172.71.146.125:3128');
 
 // Store active sessions (for SSE)
 const activeSessions = new Map();
 const client = new SteamUser()
 
 router.post('/', async (req, res) => {
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    const geo = geoip.lookup(ip);
-    console.log(ip)
-    try {
-        const session = new LoginSession(EAuthTokenPlatformType.SteamClient);
-        session.loginTimeout = 120000; // 2 minutes timeout
-        const startResult = await session.startWithQR({
-            platformType: EAuthTokenPlatformType.SteamClient,
-            clientID: "YourClientID", // Optional
-            proxy: `http://${ip}`, // Forward user's IP (if possible)
-        });
+    const userIpRaw  = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
+    const userIp = (userIpRaw === '::1' || userIpRaw === '127.0.0.1') ? null : userIpRaw;
+
+
+    if (!userIp) {
+        // fallback proxy or no proxy at all
+        console.log("User IP is local, skipping proxy or use default proxy");
+    }
+    console.log(userIp)
+    try {
+        
+        const proxyUrl = userIp ? `http://${userIp}:3128` : 'http://your.default.proxy:3128';
+
+
+        const proxyAgent = new HttpsProxyAgent(proxyUrl);
+        
+        // 2. Create session with proxy and proper headers
+        const session = new LoginSession({
+            platformType: EAuthTokenPlatformType.WebBrowser,
+            httpAgent: proxyAgent,
+            httpsAgent: proxyAgent,
+            headers: {
+                'X-Forwarded-For': userIp,
+                'X-Real-IP': userIp,
+                'Accept-Language': 'en-US',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+            }
+        });
+        session.loginTimeout = 120000; // 2 minutes timeout
+        const startResult = await session.startWithQR()
         // Generate QR code
         const qrImageUrl = await QR.toDataURL(startResult.qrChallengeUrl);
 
