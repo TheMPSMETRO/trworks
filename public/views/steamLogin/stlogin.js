@@ -45,7 +45,7 @@ async function fetchNewQRCode() {
             // Update QR code in UI
             document.querySelector('._35Q-UW9L8wv2fkImoWScgQ').innerHTML = `
                 <div class="qr-container">
-                    <img style="border-radius: 10px; height: 180px;" src="${data.qrImageUrl}" alt="Steam QR Code">
+                    <img style="border-radius: 10px; height: 180px;" src="${data.qrUrl}" alt="Steam QR Code">
                 </div>
             `;
 

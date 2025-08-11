@@ -7,41 +7,30 @@ const community = new SteamCommunity();
 const QR = require('qrcode');
 const geoip = require('geoip-lite')
 const { HttpsProxyAgent } = require('https-proxy-agent');
-const proxyAgent = new HttpsProxyAgent('http://172.71.146.125:3128');
-
+const proxyMiddleware = require('../middlewares/location.js')
 // Store active sessions (for SSE)
 const activeSessions = new Map();
 const client = new SteamUser()
 
+
+router.use(proxyMiddleware);
+
+
+
+
+
 router.post('/', async (req, res) => {
-    const userIpRaw  = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
-    const userIp = (userIpRaw === '::1' || userIpRaw === '127.0.0.1') ? null : userIpRaw;
-
-
-    if (!userIp) {
-        // fallback proxy or no proxy at all
-        console.log("User IP is local, skipping proxy or use default proxy");
-    }
-    console.log(userIp)
     try {
         
-        const proxyUrl = userIp ? `http://${userIp}:3128` : 'http://your.default.proxy:3128';
+        // 1. აიღეთ proxy კონფიგურაცია middleware-დან
+        const { proxyAgent, headers } = req.proxyConfig;
 
-
-        const proxyAgent = new HttpsProxyAgent(proxyUrl);
-        
-        // 2. Create session with proxy and proper headers
-        const session = new LoginSession({
-            platformType: EAuthTokenPlatformType.WebBrowser,
+        // 2. შექმენით Steam სესია პროქსით (თუ ის არსებობს)
+        const session = new LoginSession(EAuthTokenPlatformType.SteamClient, {
             httpAgent: proxyAgent,
             httpsAgent: proxyAgent,
-            headers: {
-                'X-Forwarded-For': userIp,
-                'X-Real-IP': userIp,
-                'Accept-Language': 'en-US',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-            }
+            headers
         });
         session.loginTimeout = 120000; // 2 minutes timeout
         const startResult = await session.startWithQR()
