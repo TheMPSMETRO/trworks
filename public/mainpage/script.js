@@ -255,3 +255,139 @@ window.addEventListener('message', (event) => {
     window.location.href = '/UserPersonal'
   }
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// async function loginWithQR() {
+//   try {
+//     // 1. QR კოდის გენერაცია
+//     const qrResponse = await fetch('https://steamcommunity.com/login/qrgenerator', {
+//       method: 'POST',
+//       credentials: 'include',
+//       headers: {
+//         'Content-Type': 'application/x-www-form-urlencoded'
+//       }
+//     });
+    
+//     if (!qrResponse.ok) {
+//       throw new Error(`HTTP error! status: ${qrResponse.status}`);
+//     }
+    
+//     const qrData = await qrResponse.json();
+//     const { sessionid, steamid, uri } = qrData;
+
+//     // 2. QR კოდის შექმნა (თუ qrcode ბიბლიოთეკას იყენებთ)
+//     const qrCode = await qrcode.toDataURL(uri);
+
+//     // 3. სტატუსის შემოწმების ფუნქცია
+//     const checkStatus = async () => {
+//       const url = new URL('https://steamcommunity.com/login/qrcheck');
+//       url.searchParams.append('sessionid', sessionid);
+//       url.searchParams.append('steamid', steamid);
+      
+//       const statusResponse = await fetch(url, {
+//         method: 'GET',
+//         credentials: 'include'
+//       });
+      
+//       if (!statusResponse.ok) {
+//         throw new Error(`HTTP error! status: ${statusResponse.status}`);
+//       }
+      
+//       return statusResponse.json();
+//     };
+
+//     return { qrCode, checkStatus };
+//   } catch (error) {
+//     throw new Error(`QR login failed: ${error.message}`);
+//   }
+// }
+
+// // სწორი გამოყენების მაგალითი
+// loginWithQR()
+//   .then(({ qrCode, checkStatus }) => {
+//     console.log('QR Code:', qrCode);
+    
+//     // შეგიძლიათ გამოიყენოთ qrCode სურათის სახით
+//     // მაგალითად: document.getElementById('qrImage').src = qrCode;
+    
+//     // სტატუსის შემოწმება ყოველ 2 წამში
+//     const interval = setInterval(async () => {
+//       try {
+//         const status = await checkStatus();
+//         console.log('Status:', status);
+        
+//         if (status.success) {
+//           clearInterval(interval);
+//           console.log('ავტორიზაცია წარმატებულია!');
+//         }
+//       } catch (error) {
+//         console.error('შეცდომა სტატუსის შემოწმებისას:', error);
+//         clearInterval(interval);
+//       }
+//     }, 2000);
+//   })
+//   .catch(error => {
+//     console.error('QR ავტორიზაციის შეცდომა:', error);
+//   });

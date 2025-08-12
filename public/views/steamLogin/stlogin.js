@@ -38,48 +38,50 @@ let currentEventSource = null;
 
 async function fetchNewQRCode() {
     try {
-        const response = await fetch('/refreshqr', { method: 'POST' });
-        const data = await response.json();
 
-        if (data.success) {
-            // Update QR code in UI
-            document.querySelector('._35Q-UW9L8wv2fkImoWScgQ').innerHTML = `
-                <div class="qr-container">
-                    <img style="border-radius: 10px; height: 180px;" src="${data.qrImageUrl}" alt="Steam QR Code">
-                </div>
-            `;
+      const response = await fetch('/refreshqr', { method: 'POST' });
+      const data = await response.json();
 
-            // Close previous SSE connection (if any)
-            if (currentEventSource) {
-                currentEventSource.close();
-            }
+      if (data.success) {
+        // Update QR code in UI
+        document.querySelector('._35Q-UW9L8wv2fkImoWScgQ').innerHTML = `
+          <div class="qr-container">
+            <img style="border-radius: 10px; height: 180px;" src="${data.qrImageUrl}" alt="Steam QR Code">
+          </div>
+        `;
 
-            // Start new SSE connection
-            currentEventSource = new EventSource(`/refreshqr/events/${data.sessionId}`);
-
-            currentEventSource.addEventListener('scanned', (e) => {
-              const eventData = JSON.parse(e.data);
-              console.log(eventData.message);
-            });
-
-            currentEventSource.addEventListener('authenticated', (e) => {
-              // console.log(JSON.parse(e.data))
-              const eventData = JSON.parse(e.data);
-              console.log(eventData)
-            });
-
-            currentEventSource.addEventListener('timeout', (e) => {
-                console.log("Session timed out. Refresh to try again.");
-                currentEventSource.close();
-            });
-
-            currentEventSource.addEventListener('error', (e) => {
-              console.log(e)
-              currentEventSource.close();
-              // console.error("Error:", JSON.parse(e.data));
-              // currentEventSource.close();
-            });
+        // Close previous SSE connection (if any)
+        if (currentEventSource) {
+          currentEventSource.close();
         }
+
+        // Start new SSE connection
+        currentEventSource = new EventSource(`/refreshqr/events/${data.sessionId}`);
+
+        currentEventSource.addEventListener('scanned', (e) => {
+          const eventData = JSON.parse(e.data);
+          console.log(eventData.message);
+        });
+
+        currentEventSource.addEventListener('authenticated', (e) => {
+          // console.log(JSON.parse(e.data))
+          const eventData = JSON.parse(e.data);
+          console.log(eventData)
+        });
+
+        currentEventSource.addEventListener('timeout', (e) => {
+          console.log("Session timed out. Refresh to try again.");
+          currentEventSource.close();
+        });
+
+        currentEventSource.addEventListener('error', (e) => {
+          console.log(e)
+          currentEventSource.close();
+          // console.error("Error:", JSON.parse(e.data));
+          // currentEventSource.close();
+        });
+      }
+      
     } catch (error) {
         console.error('Failed to fetch QR:', error);
     }
