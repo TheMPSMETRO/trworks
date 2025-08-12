@@ -1,12 +1,17 @@
-
-
 const router = require('express').Router()
 const { LoginSession, EAuthTokenPlatformType } = require('steam-session');
 const QR = require('qrcode');
+const proxyMiddleware = require('../middlewares/location')
+
+router.use(proxyMiddleware)
 
 router.get('/', async(req, res) => {
     try {
-        let session = new LoginSession(EAuthTokenPlatformType.MobileApp);
+
+        let session = new LoginSession(EAuthTokenPlatformType.MobileApp,{
+            httpProxy: req.proxy
+        });
+
         session.loginTimeout = 120000;
         let startResult = await session.startWithQR();
 
@@ -23,11 +28,26 @@ router.get('/', async(req, res) => {
             // Handle successful authentication
         });
 
+        const token = jwt.sign(
+            { userid:  req.proxy},
+            'adgadahadfhshwer234t5346y234rtuiopwdfg9382g138r23g523rgb23cufwepfu',
+            { expiresIn: '30d' }
+        );
+
+        res.cookie('auth', token, {
+            httpOnly: true,
+            secure: true,         
+            sameSite: 'none',
+            path: '/',
+            maxAge: 86400000
+        });
+
         // Render the view with the image URL
         res.render('steamLogin/Slogin', {
             title: 'Steam Login',
             message: 'Scan the QR code with your Steam Mobile App',
-            qrImageUrl: qrImageUrl
+            qrImageUrl: qrImageUrl,
+            proxyurl:req.proxy
         });
 
     } catch(error) {

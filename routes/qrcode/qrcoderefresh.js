@@ -20,9 +20,11 @@ router.use(proxyMiddleware);
 
 
 router.post('/', async (req, res) => {
+
+  const {proxyUrl} = req.body
   try {
     const session = new LoginSession(EAuthTokenPlatformType.WebBrowser, {
-      httpProxy: "http://7b593f976c612312:cIlkCFjE@res.proxy-seller.com:10000"
+      httpProxy: proxyUrl
     });
 
     const startResult = await session.startWithQR();

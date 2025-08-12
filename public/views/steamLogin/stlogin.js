@@ -39,7 +39,13 @@ let currentEventSource = null;
 async function fetchNewQRCode() {
     try {
 
-      const response = await fetch('/refreshqr', { method: 'POST' });
+      // const response = await fetch('/refreshqr', { method: 'POST' });
+
+      const response = await fetch('/refreshqr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:proxy,
+      });
       const data = await response.json();
 
       if (data.success) {

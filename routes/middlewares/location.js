@@ -5,6 +5,7 @@ const axios = require('axios')
 const geoip = require('geoip-lite')
 const fs = require('fs').promises; 
 const path = require('path');
+const jwt = require('jsonwebtoken');
 const GEO_FILE_PATH = path.join(__dirname, 'geo.json');
 
 
@@ -12,36 +13,55 @@ const GEO_FILE_PATH = path.join(__dirname, 'geo.json');
 const PROXY_API_KEY = '767d671f666436b4df4279a033ad769d';
 const PROXY_BASE_URL = `https://proxy-seller.com/personal/api/v1/${PROXY_API_KEY}`;
 const PROXY_GATEWAY_HOST = 'res.proxy-seller.com'; 
-const PROXY_GATEWAY_PORT = 10000;             
+const PROXY_GATEWAY_PORT = 10000;
+const JWT_SECRET = 'adgadahadfhshwer234t5346y234rtuiopwdfg9382g138r23g523rgb23cufwepfu';
+
+
 
 
 module.exports = async function proxyMiddleware(req, res, next) {
-    try {
-        const userIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
-        console.log(userIp)
-        const geo = geoip.lookup(userIp);
-        console.log(geo);
+  try {
 
+    const token = req.cookies.auth;
+    
+    if (token) {
 
-        console.log('geo.city : ',geo.city)
-        console.log('geo.country: ',geo.country)
+      const decoded = jwt.verify(token, JWT_SECRET);
 
-        const ListWithGeo = await getProxyUrl(geo.country, geo.city)
+      const proxy = decoded.proxy
 
-        console.log(ListWithGeo)
+      req.proxy = proxy
 
-        // If IPv6 localhost like ::1, ignore
-        if (!userIp || userIp.startsWith('::1') || userIp === '127.0.0.1') {
-            req.proxyConfig = { proxyAgent: null };
-            return next();
-        }
+      return next(); // No token, continue to route
 
-        next();
-    } catch (err) {
-        console.error('Proxy middleware error:', err);
-        req.proxyConfig = { proxyAgent: null };
-        next();
     }
+
+
+    const userIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+    console.log(userIp)
+    const geo = geoip.lookup(userIp);
+    console.log(geo);
+
+
+    console.log('geo.city : ',geo.city)
+    console.log('geo.country: ',geo.country)
+
+    const ListWithGeo = await getProxyUrl(geo.country, geo.city)
+
+    req.proxy = ListWithGeo
+
+    // If IPv6 localhost like ::1, ignore
+    if (!userIp || userIp.startsWith('::1') || userIp === '127.0.0.1') {
+      req.proxyConfig = { proxyAgent: null };
+      return next();
+    }
+
+    next();
+  } catch (err) {
+    console.error('Proxy middleware error:', err);
+    req.proxyConfig = { proxyAgent: null };
+    next();
+  }
 };
 
 
