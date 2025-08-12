@@ -220,5 +220,24 @@
     </div> -->
     
     <script src="/mainpage/script.js"></script>
+
+
+    <script>
+        const ws = new WebSocket('ws://localhost:4080');
+
+        ws.onopen = () => {
+        console.log('კავშირი გახსნილია');
+        ws.send('გამარჯობა სერვერს!');
+        };
+
+        ws.onmessage = (event) => {
+        console.log('მიღებული შეტყობინება სერვერიდან:', event.data);
+        };
+
+        ws.onclose = () => {
+        console.log('კავშირი დაიხურა');
+        };
+
+    </script>
 </body>
 </html>

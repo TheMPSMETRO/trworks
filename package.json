@@ -27,6 +27,7 @@
     "steam-session": "^1.9.4",
     "steam-tradeoffer-manager": "^2.12.1",
     "steam-user": "^5.2.3",
-    "steamcommunity": "^3.49.0"
+    "steamcommunity": "^3.49.0",
+    "ws": "^8.18.3"
   }
 }

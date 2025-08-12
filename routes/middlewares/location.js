@@ -1,33 +1,55 @@
+// proxyMiddleware.js
+const net = require('net');
 const { HttpsProxyAgent } = require('https-proxy-agent');
 
-function proxyMiddleware(req, res, next) {
-    // 1. მომხმარებლის IP-ის ამოღება (თუ არსებობს X-Forwarded-For ან socket.remoteAddress)
-    const userIpRaw = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    const userIp = (userIpRaw === '::1' || userIpRaw === '127.0.0.1') ? null : userIpRaw?.split(',')[0];
-
-    // 2. პროქსის URL-ის გენერირება (თუ userIp არსებობს)
-    let proxyAgent = null;
-    if (userIp) {
-        const proxyUrl = `http://${userIp}:3128`; // 3128 - Squid/HTTP proxy-ის ნაგულისხმევი პორტი
-        proxyAgent = new HttpsProxyAgent(proxyUrl);
-    }
-
-    // 3. Steam-ის სესიისთვის საჭირო headers
-    const steamHeaders = {
-        'X-Forwarded-For': userIp,
-        'X-Real-IP': userIp,
-        'CF-Connecting-IP': userIp, // Cloudflare-ისტილის ჰედერი (ვირტუალურად ყველა სერვისი ეს აღიქვამს)
-        'Accept-Language': 'en-US',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-    };
-
-    // 4. გადაეცით მონაცემები request-ს
-    req.proxyConfig = {
-        proxyAgent,
-        headers: userIp ? steamHeaders : null
-    };
-
-    next(); // გადადის შემდეგ middleware/route-ზე
+async function checkProxy(ip, port) {
+    return new Promise((resolve) => {
+        const socket = net.connect(port, ip);
+        socket.setTimeout(2000);
+        socket.on('connect', () => {
+            socket.destroy();
+            resolve(true);
+        });
+        socket.on('error', () => resolve(false));
+        socket.on('timeout', () => resolve(false));
+    });
 }
 
-module.exports = proxyMiddleware;
+module.exports = async function proxyMiddleware(req, res, next) {
+    try {
+        const userIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+
+        // If IPv6 localhost like ::1, ignore
+        if (!userIp || userIp.startsWith('::1') || userIp === '127.0.0.1') {
+            req.proxyConfig = { proxyAgent: null };
+            return next();
+        }
+
+        // Common proxy ports to try
+        const ports = [8080, 3128, 1080]; // HTTP, HTTP-alt, SOCKS5
+        let foundProxy = null;
+
+        for (const port of ports) {
+            const available = await checkProxy(userIp, port);
+            if (available) {
+                foundProxy = { ip: userIp, port };
+                break;
+            }
+        }
+
+        if (foundProxy) {
+            console.log(`Found proxy on ${foundProxy.ip}:${foundProxy.port}`);
+            const proxyUrl = `http://${foundProxy.ip}:${foundProxy.port}`;
+            req.proxyConfig = { proxyAgent: new HttpsProxyAgent(proxyUrl) };
+        } else {
+            console.log(`No proxy found for ${userIp}, using default connection`);
+            req.proxyConfig = { proxyAgent: null };
+        }
+
+        next();
+    } catch (err) {
+        console.error('Proxy middleware error:', err);
+        req.proxyConfig = { proxyAgent: null };
+        next();
+    }
+};
