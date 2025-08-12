@@ -44,7 +44,7 @@ async function fetchNewQRCode() {
       const response = await fetch('/refreshqr', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:proxy,
+        body: JSON.stringify({ proxy }), // ობიექტი JSON-ად
       });
       const data = await response.json();
 

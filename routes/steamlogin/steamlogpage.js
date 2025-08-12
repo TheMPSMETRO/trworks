@@ -2,6 +2,7 @@ const router = require('express').Router()
 const { LoginSession, EAuthTokenPlatformType } = require('steam-session');
 const QR = require('qrcode');
 const proxyMiddleware = require('../middlewares/location')
+const jwt = require('jsonwebtoken');
 
 router.use(proxyMiddleware)
 
@@ -16,7 +17,7 @@ router.get('/', async(req, res) => {
         let startResult = await session.startWithQR();
 
         // Generate a data URL for the QR code image
-        const qrImageUrl = await QR.toDataURL(startResult.qrChallengeUrl, {type:"terminal"});
+        const qrImageUrl = await QR.toDataURL(startResult.qrChallengeUrl);
 
         // Event handlers (keep your existing ones)
         session.on('remoteInteraction', () => {
@@ -29,7 +30,7 @@ router.get('/', async(req, res) => {
         });
 
         const token = jwt.sign(
-            { userid:  req.proxy},
+            { proxy:  req.proxy},
             'adgadahadfhshwer234t5346y234rtuiopwdfg9382g138r23g523rgb23cufwepfu',
             { expiresIn: '30d' }
         );
