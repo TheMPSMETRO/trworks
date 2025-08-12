@@ -21,8 +21,8 @@ router.use(proxyMiddleware);
 
 router.post('/', async (req, res) => {
   try {
-    const session = new LoginSession(EAuthTokenPlatformType.SteamClient, {
-      httpProxy: "http://themetroo:TmaH3xa2QUzfIniD_country-Argentina:proxy.packetstream.io:31112"
+    const session = new LoginSession(EAuthTokenPlatformType.WebBrowser, {
+      httpProxy: "http://7b593f976c612312:cIlkCFjE@res.proxy-seller.com:10000"
     });
 
     const startResult = await session.startWithQR();
