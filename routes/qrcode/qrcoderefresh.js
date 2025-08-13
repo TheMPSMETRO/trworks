@@ -4,42 +4,79 @@ const SteamUser = require('steam-user')
 const { LoginSession, EAuthTokenPlatformType } = require('steam-session');
 const SteamCommunity = require('steamcommunity');
 const community = new SteamCommunity();
-const QRCode  = require('qrcode');
+const QRCode = require('qrcode');
 const geoip = require('geoip-lite')
 const { HttpsProxyAgent } = require('https-proxy-agent');
 const proxyMiddleware = require('../middlewares/location.js')
 // Store active sessions (for SSE)
 const activeSessions = new Map();
 const client = new SteamUser()
-
+const jwt = require('jsonwebtoken');
+const { v4: uuidv4 } = require('uuid'); // დავამატეთ UUID გენერატორი
 
 router.use(proxyMiddleware);
 
-
-
-
-
 router.post('/', async (req, res) => {
+  const proxyUrl = req.proxy;
 
-  const {proxyUrl} = req.body
+  // console.log('recieved Proxy:',proxyUrl)
+
+  // console.log('proxy : ', req.proxy);
+
+  // const proxyAgent = new HttpsProxyAgent(proxyUrl);
+
+  // const proxyURL = proxyAgent.proxy
+
+  // const auth = proxyURL.username ? {
+  //   username: proxyURL.username,
+  //   password: proxyURL.password
+  // } : undefined;
+
+  // console.log(proxyURL)
+
+  // console.log('proxyAgent :',proxyAgent)
+
+  console.log(typeof proxyUrl)
   try {
     const session = new LoginSession(EAuthTokenPlatformType.WebBrowser, {
-      httpProxy: proxyUrl
+      httpProxy:`http://${proxyUrl}`
     });
 
     const startResult = await session.startWithQR();
     const qrImageUrl = await QRCode.toDataURL(startResult.qrChallengeUrl);
 
+    // გენერირება session ID-ის
+    const sessionId = uuidv4();
+    activeSessions.set(sessionId, session);
+
+    const token = jwt.sign(
+      { 
+        proxy:req.proxy,
+        sessionId: sessionId // დავამატეთ sessionId ტოკენში
+      },
+      'adgadahadfhshwer234t5346y234rtuiopwdfg9382g138r23g523rgb23cufwepfu',
+      { expiresIn: '30d' }
+    );
+
+    res.cookie('auth', token, {
+      httpOnly: true,
+      secure: true,         
+      sameSite: 'none',
+      path: '/',
+      maxAge: 86400000
+    });
+
     res.status(200).json({
       success: true,
       message: 'qr generated',
-      qrImageUrl
+      qrImageUrl,
+      sessionId // დავაბრუნეთ sessionId კლიენტს
     });
   } catch(error) {
-    console.log('error:', error);
+    console.log('QR REFRESH ERROR:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
-
 
 // SSE Endpoint for real-time updates
 router.get('/events/:sessionId', (req, res) => {
@@ -47,37 +84,54 @@ router.get('/events/:sessionId', (req, res) => {
     const session = activeSessions.get(sessionId);
 
     if (!session) {
-        return res.status(404).end();
+        return res.status(404).json({ success: false, error: 'Session not found' });
     }
 
     // SSE headers
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    // Send initial connection confirmation
+    res.write(`event: connected\ndata: ${JSON.stringify({ message: "SSE connection established" })}\n\n`);
 
     // Event handlers
     session.on('remoteInteraction', () => {
-      res.write(`event: scanned\ndata: ${JSON.stringify({ message: "QR scanned! Waiting for approval..." })}\n\n`);
+        res.write(`event: scanned\ndata: ${JSON.stringify({ message: "QR scanned! Waiting for approval..." })}\n\n`);
     });
 
     session.on('authenticated', async () => {
-        const cookies = await session.getWebCookies();
-        const inventory = await loginWithCookies(cookies)
-        res.write(`event: authenticated\ndata: ${JSON.stringify({ message: "Login successful!", cookies, inventory })}\n\n`);
-        res.end();
-        activeSessions.delete(sessionId); // Cleanup
+        try {
+            const cookies = await session.getWebCookies();
+            const inventory = await loginWithCookies(cookies);
+            res.write(`event: authenticated\ndata: ${JSON.stringify({ 
+                message: "Login successful!", 
+                cookies, 
+                inventory 
+            })}\n\n`);
+            activeSessions.delete(sessionId); // Cleanup
+            res.end();
+        } catch (error) {
+            res.write(`event: error\ndata: ${JSON.stringify({ 
+                error: "Failed to get inventory", 
+                details: error.message 
+            })}\n\n`);
+            res.end();
+            activeSessions.delete(sessionId);
+        }
     });
 
     session.on('timeout', () => {
         res.write(`event: timeout\ndata: ${JSON.stringify({ message: "Session timed out." })}\n\n`);
-        res.end();
         activeSessions.delete(sessionId);
+        res.end();
     });
 
     session.on('error', (err) => {
         res.write(`event: error\ndata: ${JSON.stringify({ error: err.message })}\n\n`);
-        res.end();
         activeSessions.delete(sessionId);
+        res.end();
     });
 
     // Handle client disconnect

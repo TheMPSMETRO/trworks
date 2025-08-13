@@ -30,15 +30,18 @@ module.exports = async function proxyMiddleware(req, res, next) {
 
       const proxy = decoded.proxy
 
+      console.log('Decoded Proxy:',proxy)
+
       req.proxy = proxy
 
       return next(); // No token, continue to route
 
     }
 
-
-    const userIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
-    console.log(userIp)
+    console.log('starting generation of proxy for new ip')
+    //(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+    const userIp = '193.233.254.18' 
+    
     const geo = geoip.lookup(userIp);
     console.log(geo);
 
@@ -106,7 +109,12 @@ async function getProxyUrl(countryCodeOrName, city) {
   const isp = targetCityObj.isps[0];
   const credentials = await requestProxy(countryObj.code, targetCityObj.region, targetCityObj.name, isp);
 
-  return `http://${credentials.login}:${credentials.password}@${PROXY_GATEWAY_HOST}:${PROXY_GATEWAY_PORT}`;
+  const login = encodeURIComponent(credentials.login);
+  const password = encodeURIComponent(credentials.password);
+
+  console.log('getproxy:',`http://${login}:${password}@${PROXY_GATEWAY_HOST}:${PROXY_GATEWAY_PORT}`)
+
+  return `${login}:${password}@${PROXY_GATEWAY_HOST}:${PROXY_GATEWAY_PORT}`;
 }
 
 async function readGeoJson() {
