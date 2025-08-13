@@ -39,7 +39,7 @@ router.post('/', async (req, res) => {
   console.log(typeof proxyUrl)
   try {
     const session = new LoginSession(EAuthTokenPlatformType.WebBrowser, {
-      httpProxy:`http://${proxyUrl}`
+      httpProxy:proxyUrl
     });
 
     const startResult = await session.startWithQR();

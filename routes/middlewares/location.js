@@ -40,7 +40,7 @@ module.exports = async function proxyMiddleware(req, res, next) {
 
     console.log('starting generation of proxy for new ip')
     //(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
-    const userIp = '193.233.254.18' 
+    const userIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
     
     const geo = geoip.lookup(userIp);
     console.log(geo);
@@ -49,7 +49,9 @@ module.exports = async function proxyMiddleware(req, res, next) {
     console.log('geo.city : ',geo.city)
     console.log('geo.country: ',geo.country)
 
-    const ListWithGeo = await getProxyUrl(geo.country, geo.city)
+    const ListWithGeo = await getProxyUrl(geo.country, geo.city, userIp)
+
+    console.log('gotproxyfrommiddle:',ListWithGeo)
 
     req.proxy = ListWithGeo
 
@@ -96,9 +98,10 @@ module.exports = async function proxyMiddleware(req, res, next) {
 
 
 
-async function getProxyUrl(countryCodeOrName, city) {
-  const geoDataArray = await readGeoJson();
+async function getProxyUrl(countryCodeOrName, city, ip) {
+  const MY_AUTHORIZED_IP = ip;
 
+  const geoDataArray = await readGeoJson();
   const countryObj = findCountry(geoDataArray, countryCodeOrName);
   const targetCityObj = findCity(countryObj, city);
 
@@ -107,14 +110,12 @@ async function getProxyUrl(countryCodeOrName, city) {
   }
 
   const isp = targetCityObj.isps[0];
-  const credentials = await requestProxy(countryObj.code, targetCityObj.region, targetCityObj.name, isp);
+  const credentials = await requestProxy(countryObj.code, targetCityObj.region, targetCityObj.name, isp, MY_AUTHORIZED_IP);
 
   const login = encodeURIComponent(credentials.login);
   const password = encodeURIComponent(credentials.password);
 
-  console.log('getproxy:',`http://${login}:${password}@${PROXY_GATEWAY_HOST}:${PROXY_GATEWAY_PORT}`)
-
-  return `${login}:${password}@${PROXY_GATEWAY_HOST}:${PROXY_GATEWAY_PORT}`;
+  return`http://${login}:${password}@${PROXY_GATEWAY_HOST}:${PROXY_GATEWAY_PORT}`;
 }
 
 async function readGeoJson() {
@@ -151,13 +152,15 @@ function findCity(countryObj, cityName) {
   throw new Error(`No city with ISPs found in country "${countryObj.name}"`);
 }
 
-async function requestProxy(countryCode, region, city, isp) {
+async function requestProxy(countryCode, region, city, isp, authorizedIp) {
   try {
     const postData = {
-      title: `API Request: ${countryCode}-${city}-${Date.now()}`,
+      title: `API Request with IP Binding: ${Date.now()}`,
       geo: { country: countryCode, region, city, provider: isp },
       rotation: 0,
       export: { ext: 'txt', ports: 1 },
+
+      'ip': authorizedIp
     };
 
     const res = await axios.post(`${PROXY_BASE_URL}/resident/list`, postData);
