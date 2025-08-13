@@ -99,7 +99,7 @@ module.exports = async function proxyMiddleware(req, res, next) {
 
 
 async function getProxyUrl(countryCodeOrName, city, ip) {
-  const MY_AUTHORIZED_IP = ip;
+  const MY_AUTHORIZED_IP = '216.24.57.251';
 
   const geoDataArray = await readGeoJson();
   const countryObj = findCountry(geoDataArray, countryCodeOrName);
