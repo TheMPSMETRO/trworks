@@ -99,7 +99,7 @@ module.exports = async function proxyMiddleware(req, res, next) {
 
 
 async function getProxyUrl(countryCodeOrName, city, ip) {
-  const MY_AUTHORIZED_IP = '216.24.57.251';
+  const MY_AUTHORIZED_IP = ip;
 
   const geoDataArray = await readGeoJson();
   const countryObj = findCountry(geoDataArray, countryCodeOrName);
@@ -115,7 +115,7 @@ async function getProxyUrl(countryCodeOrName, city, ip) {
   const login = encodeURIComponent(credentials.login);
   const password = encodeURIComponent(credentials.password);
 
-  return`http://${login}:${password}@${PROXY_GATEWAY_HOST}:${PROXY_GATEWAY_PORT}`;
+  return`https://${login}:${password}@${PROXY_GATEWAY_HOST}:${PROXY_GATEWAY_PORT}`;
 }
 
 async function readGeoJson() {
